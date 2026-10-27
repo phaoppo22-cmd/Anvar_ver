@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ລະບົບຈັດການຮ້ານຄ້າ - Admin Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Noto Sans Lao -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        adminDark: '#0f172a',
+                        adminSidebar: '#1e293b',
+                        brandYellow: '#ffd400'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans Lao', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen flex flex-col">
+
+    <!-- AUTH SECTION (ĐĂNG NHẬP / ĐĂNG KÝ ADMIN) -->
+    <div id="adminAuthContainer" class="fixed inset-0 z-50 bg-adminDark flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-8 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-brandYellow text-black rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl font-black shadow">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h2 class="text-xl font-extrabold text-gray-900">ລະບົບຜູ້ດູແລລະບົບ (Admin Panel)</h2>
+                <p class="text-xs text-gray-500 mt-1">ກະລຸນາເຂົ້າສູ່ລະບົບ ຫຼື ລົງທະບຽນບັນຊີ Admin</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex border-b mb-6">
+                <button onclick="switchAdminTab('login')" id="adminLoginTab" class="flex-1 pb-2 font-extrabold text-sm text-blue-600 border-b-2 border-blue-600">ເຂົ້າສູ່ລະບົບ</button>
+                <button onclick="switchAdminTab('register')" id="adminRegTab" class="flex-1 pb-2 font-extrabold text-sm text-gray-400 border-b-2 border-transparent">ລົງທະບຽນໃໝ່</button>
+            </div>
+
+            <!-- Admin Login Form -->
+            <form id="adminLoginForm" onsubmit="handleAdminLogin(event)" class="space-y-4 text-xs sm:text-sm">
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">ຊື່ຜູ້ໃຊ້ ຫຼື ອີເມວ Admin *</label>
+                    <input type="text" id="logAdminUser" required placeholder="admin@tgdd.la" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">ລະຫັດຜ່ານ *</label>
+                    <input type="password" id="logAdminPass" required placeholder="••••••••" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-adminDark text-white font-extrabold py-3 rounded-xl hover:bg-slate-800 transition shadow">ເຂົ້າສູ່ລະບົບ Admin</button>
+            </form>
+
+            <!-- Admin Register Form -->
+            <form id="adminRegForm" onsubmit="handleAdminRegister(event)" class="space-y-4 text-xs sm:text-sm hidden">
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">ຊື່ຜູ້ໃຊ້ Admin *</label>
+                    <input type="text" id="regAdminUser" required placeholder="admin" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">ອີເມວ *</label>
+                    <input type="email" id="regAdminEmail" required placeholder="admin@tgdd.la" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 mb-1">ລະຫັດຜ່ານ *</label>
+                    <input type="password" id="regAdminPass" required placeholder="••••••••" class="w-full border border-gray-300 rounded-xl p-3 outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-brandYellow text-black font-extrabold py-3 rounded-xl hover:bg-yellow-400 transition shadow">ສ້າງບັນຊີ Admin</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN DASHBOARD -->
+    <div id="adminDashboard" class="hidden flex-1 flex flex-col md:flex-row min-h-screen">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-full md:w-64 bg-adminSidebar text-white flex flex-col justify-between shadow-xl">
+            <div>
+                <!-- LOGO VÀ NÚT ĐĂNG XUẤT Ở GÓC TRÊN BÊN PHẢI -->
+                <div class="p-4 border-b border-gray-700 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                        <div class="bg-brandYellow text-black font-black h-9 w-9 rounded-xl flex items-center justify-center text-base flex-shrink-0">
+                            <i class="fa-solid fa-gauge"></i>
+                        </div>
+                        <div class="truncate">
+                            <h1 class="font-extrabold text-xs tracking-tight">TGDD Admin</h1>
+                            <p class="text-[9px] text-gray-400">ລະບົບຈັດການ</p>
+                        </div>
+                    </div>
+                    <!-- Nút đăng xuất nằm ở trên phải ô logo -->
+                    <button onclick="adminLogout()" title="ອອກຈາກລະບົບ" class="bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white h-8 w-8 rounded-lg flex items-center justify-center transition flex-shrink-0">
+                        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+                    </button>
+                </div>
+
+                <nav class="p-3 space-y-1 text-xs sm:text-sm">
+                    <button onclick="switchTab('products')" id="nav-products" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold transition shadow"><i class="fa-solid fa-box"></i> ຈັດການສິນຄ້າ</button>
+                    <button onclick="switchTab('contacts')" id="nav-contacts" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-800 text-gray-300 font-medium transition"><i class="fa-solid fa-headset"></i> ຕັ້ງຄ່າເບີ ແລະ WhatsApp</button>
+                    <button onclick="switchTab('bank')" id="nav-bank" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-800 text-gray-300 font-medium transition"><i class="fa-solid fa-qrcode"></i> ຈັດການທະນາຄານ & QR</button>
+                    <button onclick="switchTab('orders')" id="nav-orders" class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-gray-800 text-gray-300 font-medium transition">
+                        <div class="flex items-center gap-3"><i class="fa-solid fa-receipt"></i> ຈັດການລູກຄ້າ & ບິນ</div>
+                        <span id="newOrderBadge" class="hidden bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">ໃໝ່</span>
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+            
+            <!-- TAB 1: QUẢN LÝ SẢN PHẨM -->
+            <section id="tab-products" class="space-y-6">
+                <div class="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-gray-900">ຈັດການລາຍການສິນຄ້າ</h2>
+                        <p class="text-xs text-gray-500">ເພີ່ມ, ແກ້ໄຂ ຫຼື ລຶບສິນຄ້າໃນຮ້ານຄ້າ</p>
+                    </div>
+                    <button onclick="openProductModal()" class="bg-brandYellow hover:bg-yellow-400 text-black font-extrabold px-4 py-2.5 rounded-xl text-xs shadow flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> ເພີ່ມສິນຄ້າໃໝ່
+                    </button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                            <thead>
+                                <tr class="bg-gray-50 border-b text-gray-600">
+                                    <th class="p-3">ຮູບພາບ</th>
+                                    <th class="p-3">ຊື່ສິນຄ້າ</th>
+                                    <th class="p-3">ໝວດໝູ່ & ແບຣນ</th>
+                                    <th class="p-3">ລາຄາຂາຍ</th>
+                                    <th class="p-3">ສາງ (Stock)</th>
+                                    <th class="p-3 text-center">ຈັດການ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductTable" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: QUẢN LÝ LIÊN HỆ -->
+            <section id="tab-contacts" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border max-w-2xl">
+                    <h2 class="text-lg font-extrabold text-gray-900 mb-1">ຕັ້ງຄ່າເບີໂທລະສັບ ແລະ WhatsApp</h2>
+                    <p class="text-xs text-gray-500 mb-4">ກຳນົດເບີສາຍດ່ວນ ແລະລິ້ງ Chat ທີ່ສະແດງໃນປຸ່ມລອຍຂອງເວັບໄຊ</p>
+                    <form onsubmit="saveContactSettings(event)" class="space-y-4 text-xs sm:text-sm">
+                        <div>
+                            <label class="block font-medium text-gray-700 mb-1">ເບີໂທລະສັບສາຍດ່ວນ (Tel):</label>
+                            <input type="text" id="settingPhone" required class="w-full border rounded-xl p-3 outline-none" placeholder="18001060">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-700 mb-1">ເບີ WhatsApp (ລະຫັດປະເທດ+ເບີ):</label>
+                            <input type="text" id="settingWhatsapp" required class="w-full border rounded-xl p-3 outline-none" placeholder="84901234567">
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition shadow">ບັນທຶກການຕັ້ງຄ່າ</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: QUẢN LÝ NGÂN HÀNG & QR -->
+            <section id="tab-bank" class="space-y-6 hidden">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border max-w-2xl">
+                    <h2 class="text-lg font-extrabold text-gray-900 mb-1">ຕັ້ງຄ່າບັນຊີທະນາຄານ ແລະ QR Code</h2>
+                    <p class="text-xs text-gray-500 mb-4">ຂໍ້ມູນບັນຊີສຳລັບໃຫ້ລູກຄ້າສະແກນຈ່າຍເງິນ</p>
+                    <form onsubmit="saveBankSettings(event)" class="space-y-4 text-xs sm:text-sm">
+                        <div>
+                            <label class="block font-medium text-gray-700 mb-1">ຊື່ທະນາຄານ:</label>
+                            <input type="text" id="settingBankName" required class="w-full border rounded-xl p-3 outline-none" placeholder="BCEL / JDB / Indochina Bank">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-700 mb-1">ເລກບັນຊີ:</label>
+                            <input type="text" id="settingBankAcc" required class="w-full border rounded-xl p-3 outline-none" placeholder="123456789">
+                        </div>
+                        <div>
+                            <label class="block font-medium text-gray-700 mb-1">ລິ້ງຮູບພາບ QR Code (URL):</label>
+                            <input type="text" id="settingQrUrl" required class="w-full border rounded-xl p-3 outline-none" placeholder="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=...">
+                        </div>
+                        <button type="submit" class="bg-blue-600 text-white font-bold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition shadow">ບັນທຶກຂໍ້ມູນທະນາຄານ</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 4: QUẢN LÝ ĐƠN HÀNG & KHÁCH HÀNG -->
+            <section id="tab-orders" class="space-y-6 hidden">
+                <div class="bg-white p-4 rounded-2xl shadow-sm border flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-gray-900">ປະຫວັດການສັ່ງຊື້ ແລະ ຂໍ້ມູນລູກຄ້າ</h2>
+                        <p class="text-xs text-gray-500">ລາຍການບິນສັ່ງຊື້ທັງໝົດຈາກລູກຄ້າໃນເວັບໄຊ</p>
+                    </div>
+                    <button onclick="clearAllOrders()" class="bg-red-100 text-red-600 font-bold px-3 py-2 rounded-xl text-xs hover:bg-red-200 transition"><i class="fa-solid fa-trash-can"></i> ລຶບປະຫວັດທັງໝົດ</button>
+                </div>
+                <div id="adminOrdersContainer" class="space-y-4"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL HIỂN THỊ ẢNH SLIP PHÓNG TO (LIGHTBOX) -->
+    <div id="imageModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeImageModal()">
+        <div class="relative max-w-2xl w-full flex flex-col items-center" onclick="event.stopPropagation()">
+            <button onclick="closeImageModal()" class="absolute -top-10 right-0 bg-white/20 hover:bg-white/40 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold text-lg transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <img id="modalSlipImage" src="" alt="Enlarged Slip" class="max-w-full max-h-[85vh] object-contain rounded-2xl shadow-2xl bg-white p-2">
+            <p class="text-white text-xs mt-3 bg-black/50 px-4 py-1.5 rounded-full">ຄລິກພື້ນທີ່ຫວ່າງເພື່ອປິດ</p>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM / SỬA SẢN PHẨM -->
+    <div id="productModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 id="modalTitle" class="text-lg font-extrabold text-gray-900">ເພີ່ມສິນຄ້າໃໝ່</h3>
+                <button onclick="closeProductModal()" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="productForm" onsubmit="handleProductSubmit(event)" class="space-y-3 text-xs sm:text-sm">
+                <input type="hidden" id="editProductId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium mb-1">ຊື່ສິນຄ້າ *</label>
+                        <input type="text" id="pName" required class="w-full border rounded-xl p-2.5 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1">ໝວດໝູ່ *</label>
+                        <select id="pCategory" class="w-full border rounded-xl p-2.5 outline-none">
+                            <option value="phone">ໂທລະສັບ</option>
+                            <option value="laptop">ແລັບທັອບ</option>
+                            <option value="tablet">ແທັບເລັດ</option>
+                            <option value="accessory">ອຸປະກອນເສີມ</option>
+                            <option value="watch">ໂມງ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-medium mb-1">ແບຣນ *</label>
+                        <input type="text" id="pBrand" required placeholder="Apple / Samsung..." class="w-full border rounded-xl p-2.5 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1">ລາຄາຂາຍ (₭) *</label>
+                        <input type="number" id="pPrice" required class="w-full border rounded-xl p-2.5 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1">ລາຄາເກົ່າ (₭)</label>
+                        <input type="number" id="pOldPrice" class="w-full border rounded-xl p-2.5 outline-none">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-medium mb-1">ລິ້ງຮູບພາບຫຼັກ (Image URL) *</label>
+                        <input type="text" id="pImage" required class="w-full border rounded-xl p-2.5 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-medium mb-1">ຈຳນວນໃນສາງ (Stock) *</label>
+                        <input type="number" id="pStock" required value="10" class="w-full border rounded-xl p-2.5 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium mb-1">ສີທີ່ມີ (ແຍກດ້ວຍຈຸດ ,)</label>
+                    <input type="text" id="pColors" placeholder="ດຳ, ຂາວ, ເງິນ" class="w-full border rounded-xl p-2.5 outline-none">
+                </div>
+                <div>
+                    <label class="block font-medium mb-1">ຄວາມຈຸທີ່ມີ (ແຍກດ້ວຍຈຸດ ,)</label>
+                    <input type="text" id="pStorageOpts" placeholder="256GB, 512GB, 1TB" class="w-full border rounded-xl p-2.5 outline-none">
+                </div>
+
+                <div class="border-t pt-3 mt-3 space-y-2">
+                    <h4 class="font-bold text-gray-800">ຂໍ້ມູນທາງເຕັກນິກລະອຽດ:</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="specScreen" placeholder="ໜ້າຈໍ (ເຊັ່ນ: 6.7 ນິ້ວ OLED)" class="border rounded-xl p-2.5 outline-none">
+                        <input type="text" id="specCpu" placeholder="CPU / ຊິບ (ເຊັ່ນ: A17 Pro)" class="border rounded-xl p-2.5 outline-none">
+                        <input type="text" id="specRam" placeholder="RAM (ເຊັ່ນ: 8 GB)" class="border rounded-xl p-2.5 outline-none">
+                        <input type="text" id="specStorage" placeholder="Storage (ເຊັ່ນ: 256 GB)" class="border rounded-xl p-2.5 outline-none">
+                        <input type="text" id="specGpu" placeholder="GPU (ເຊັ່ນ: Apple 6-core)" class="border rounded-xl p-2.5 outline-none">
+                        <input type="text" id="specCamera" placeholder="ກ້ອງຖ່າຍຮູບ (ເຊັ່ນ: 48 MP)" class="border rounded-xl p-2.5 outline-none">
+                    </div>
+                    <input type="text" id="specBattery" placeholder="ແບັດເຕີຣີ ແລະ ການຊາດ (ເຊັ່ນ: 4422 mAh, 20W)" class="w-full border rounded-xl p-2.5 outline-none">
+                </div>
+
+                <div class="border-t pt-3 mt-4 flex justify-end gap-2">
+                    <button type="button" onclick="closeProductModal()" class="bg-gray-100 px-4 py-2 rounded-xl font-bold">ຍົກເລີກ</button>
+                    <button type="submit" class="bg-brandYellow text-black font-extrabold px-6 py-2 rounded-xl shadow">ບັນທຶກສິນຄ້າ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT XỬ LÝ ADMIN -->
+    <script>
+        const defaultProducts = [
+            {
+                id: 1, category: "phone", brand: "Apple", price: 29590000, oldPrice: 34990000, rating: 4.9, reviews: 428,
+                image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=500&q=80",
+                gallery: ["https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=500&q=80"],
+                colors: ["ໄທເທນຽມທຳມະຊາດ", "ໄທເທນຽມດຳ"], storageOptions: ["256GB", "512GB", "1TB"], isFlashSale: true, stock: 12,
+                name: "iPhone 15 Pro Max 256GB",
+                specs: { screen: "6.7 ນິ້ວ OLED Super Retina XDR", cpu: "Apple A17 Pro", ram: "8 GB", storage: "256 GB", camera: "48 MP", battery: "4422 mAh" }
+            }
+        ];
+
+        let products = [];
+        try {
+            const savedProducts = JSON.parse(localStorage.getItem('tgdd_products'));
+            if (Array.isArray(savedProducts) && savedProducts.length > 0) {
+                products = savedProducts;
+            } else {
+                products = defaultProducts;
+            }
+        } catch (e) {
+            products = defaultProducts;
+        }
+
+        let adminUsers = JSON.parse(localStorage.getItem('tgdd_admin_users')) || [];
+        let currentAdmin = JSON.parse(localStorage.getItem('tgdd_current_admin')) || null;
+        let orders = JSON.parse(localStorage.getItem('tgdd_orders')) || [];
+
+        window.onload = function() {
+            checkAdminAuth();
+            renderAdminProducts();
+            loadSettings();
+            renderAdminOrders();
+            checkNewOrdersBadge();
+        };
+
+        function formatPrice(val) {
+            const num = Number(val);
+            if (isNaN(num)) return "0";
+            return num.toLocaleString();
+        }
+
+        function checkAdminAuth() {
+            if (currentAdmin) {
+                document.getElementById('adminAuthContainer').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+            } else {
+                document.getElementById('adminAuthContainer').classList.remove('hidden');
+                document.getElementById('adminDashboard').classList.add('hidden');
+            }
+        }
+
+        function switchAdminTab(tab) {
+            const lTab = document.getElementById('adminLoginTab');
+            const rTab = document.getElementById('adminRegTab');
+            const lForm = document.getElementById('adminLoginForm');
+            const rForm = document.getElementById('adminRegForm');
+            if (tab === 'login') {
+                lTab.className = "flex-1 pb-2 font-extrabold text-sm text-blue-600 border-b-2 border-blue-600";
+                rTab.className = "flex-1 pb-2 font-extrabold text-sm text-gray-400 border-b-2 border-transparent";
+                lForm.classList.remove('hidden'); rForm.classList.add('hidden');
+            } else {
+                rTab.className = "flex-1 pb-2 font-extrabold text-sm text-blue-600 border-b-2 border-blue-600";
+                lTab.className = "flex-1 pb-2 font-extrabold text-sm text-gray-400 border-b-2 border-transparent";
+                rForm.classList.remove('hidden'); lForm.classList.add('hidden');
+            }
+        }
+
+        function handleAdminRegister(e) {
+            e.preventDefault();
+            const username = document.getElementById('regAdminUser').value;
+            const email = document.getElementById('regAdminEmail').value;
+            const pass = document.getElementById('regAdminPass').value;
+
+            adminUsers.push({ username, email, pass });
+            localStorage.setItem('tgdd_admin_users', JSON.stringify(adminUsers));
+            alert("ລົງທະບຽນບັນຊີ Admin ສຳເລັດ! ກະລຸນາເຂົ້າສູ່ລະບົບ");
+            switchAdminTab('login');
+        }
+
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('logAdminUser').value;
+            const pass = document.getElementById('logAdminPass').value;
+
+            if ((user === 'admin' && pass === 'admin') || adminUsers.find(u => (u.username === user || u.email === user) && u.pass === pass)) {
+                currentAdmin = { username: user };
+                localStorage.setItem('tgdd_current_admin', JSON.stringify(currentAdmin));
+                checkAdminAuth();
+            } else {
+                alert("ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານ Admin ບໍ່ຖືກຕ້ອງ! (ຄ່າເລີ່ມຕົ້ນ: admin / admin)");
+            }
+        }
+
+        function adminLogout() {
+            currentAdmin = null;
+            localStorage.removeItem('tgdd_current_admin');
+            checkAdminAuth();
+        }
+
+        function switchTab(tabName) {
+            ['products', 'contacts', 'bank', 'orders'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`nav-${t}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-800 text-gray-300 font-medium transition";
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            
+            if (tabName === 'orders') {
+                document.getElementById('nav-orders').className = "w-full flex items-center justify-between px-4 py-3 rounded-xl bg-blue-600 text-white font-bold transition shadow";
+                markOrdersAsRead();
+            } else {
+                document.getElementById(`nav-${tabName}`).className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-bold transition shadow";
+            }
+        }
+
+        function renderAdminProducts() {
+            const tbody = document.getElementById('adminProductTable');
+            if (!Array.isArray(products) || products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-400">ຍັງບໍ່ມີຂໍ້ມູນສິນຄ້າ</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = products.map(p => `
+                <tr class="hover:bg-gray-50 border-b">
+                    <td class="p-3"><img src="${p.image || ''}" class="w-10 h-10 object-contain bg-white border rounded p-1" onerror="this.src='https://via.placeholder.com/40'"></td>
+                    <td class="p-3 font-bold text-gray-900">${p.name || 'ບໍ່ມີຊື່'}</td>
+                    <td class="p-3"><span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold">${p.category || 'N/A'}</span> - ${p.brand || 'N/A'}</td>
+                    <td class="p-3 text-red-600 font-bold">${formatPrice(p.price)} ₭</td>
+                    <td class="p-3">${p.stock || 0} ເຄື່ອງ</td>
+                    <td class="p-3 text-center space-x-2">
+                        <button onclick="editProduct(${p.id})" class="bg-blue-100 text-blue-600 px-2.5 py-1 rounded-lg font-bold"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteProduct(${p.id})" class="bg-red-100 text-red-600 px-2.5 py-1 rounded-lg font-bold"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+            localStorage.setItem('tgdd_products', JSON.stringify(products));
+        }
+
+        function openProductModal() {
+            document.getElementById('modalTitle').textContent = "ເພີ່ມສິນຄ້າໃໝ່";
+            document.getElementById('productForm').reset();
+            document.getElementById('editProductId').value = "";
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+        }
+
+        function handleProductSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editProductId').value;
+            const newItem = {
+                id: id ? Number(id) : Date.now(),
+                name: document.getElementById('pName').value,
+                category: document.getElementById('pCategory').value,
+                brand: document.getElementById('pBrand').value,
+                price: Number(document.getElementById('pPrice').value) || 0,
+                oldPrice: Number(document.getElementById('pOldPrice').value) || 0,
+                rating: 4.8, reviews: 10,
+                image: document.getElementById('pImage').value,
+                gallery: [document.getElementById('pImage').value],
+                colors: document.getElementById('pColors').value.split(',').map(s => s.trim()).filter(Boolean),
+                storageOptions: document.getElementById('pStorageOpts').value.split(',').map(s => s.trim()).filter(Boolean),
+                isFlashSale: false,
+                stock: Number(document.getElementById('pStock').value) || 0,
+                specs: {
+                    screen: document.getElementById('specScreen').value,
+                    cpu: document.getElementById('specCpu').value,
+                    ram: document.getElementById('specRam').value,
+                    storage: document.getElementById('specStorage').value,
+                    gpu: document.getElementById('specGpu').value,
+                    camera: document.getElementById('specCamera').value,
+                    battery: document.getElementById('specBattery').value
+                }
+            };
+
+            if (id) {
+                const index = products.findIndex(p => p.id === Number(id));
+                if (index !== -1) products[index] = newItem;
+            } else {
+                products.unshift(newItem);
+            }
+
+            renderAdminProducts();
+            closeProductModal();
+            alert("ບັນທຶກສິນຄ້າສຳເລັດ!");
+        }
+
+        function editProduct(id) {
+            const p = products.find(item => item.id === id);
+            if (!p) return;
+            document.getElementById('modalTitle').textContent = "ແກ້ໄຂຂໍ້ມູນສິນຄ້າ";
+            document.getElementById('editProductId').value = p.id;
+            document.getElementById('pName').value = p.name || '';
+            document.getElementById('pCategory').value = p.category || 'phone';
+            document.getElementById('pBrand').value = p.brand || '';
+            document.getElementById('pPrice').value = p.price || 0;
+            document.getElementById('pOldPrice').value = p.oldPrice || 0;
+            document.getElementById('pImage').value = p.image || '';
+            document.getElementById('pStock').value = p.stock || 0;
+            document.getElementById('pColors').value = (p.colors || []).join(', ');
+            document.getElementById('pStorageOpts').value = (p.storageOptions || []).join(', ');
+            document.getElementById('specScreen').value = p.specs?.screen || '';
+            document.getElementById('specCpu').value = p.specs?.cpu || '';
+            document.getElementById('specRam').value = p.specs?.ram || '';
+            document.getElementById('specStorage').value = p.specs?.storage || '';
+            document.getElementById('specGpu').value = p.specs?.gpu || '';
+            document.getElementById('specCamera').value = p.specs?.camera || '';
+            document.getElementById('specBattery').value = p.specs?.battery || '';
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function deleteProduct(id) {
+            if (confirm("ທ່ານແນ່ໃຈບໍວ່າຕ້ອງການລຶບສິນຄ້ານີ້?")) {
+                products = products.filter(p => p.id !== id);
+                renderAdminProducts();
+            }
+        }
+
+        function loadSettings() {
+            const contact = JSON.parse(localStorage.getItem('tgdd_contact_settings')) || { phone: '18001060', whatsapp: '84901234567' };
+            document.getElementById('settingPhone').value = contact.phone || '';
+            document.getElementById('settingWhatsapp').value = contact.whatsapp || '';
+
+            const bank = JSON.parse(localStorage.getItem('tgdd_bank_settings')) || { name: 'BCEL', acc: '123456789', qr: 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TGDD_QR' };
+            document.getElementById('settingBankName').value = bank.name || '';
+            document.getElementById('settingBankAcc').value = bank.acc || '';
+            document.getElementById('settingQrUrl').value = bank.qr || '';
+        }
+
+        function saveContactSettings(e) {
+            e.preventDefault();
+            const data = {
+                phone: document.getElementById('settingPhone').value,
+                whatsapp: document.getElementById('settingWhatsapp').value
+            };
+            localStorage.setItem('tgdd_contact_settings', JSON.stringify(data));
+            alert("ບັນທຶກການຕັ້ງຄ່າເບີໂທ ແລະ WhatsApp ສຳເລັດ!");
+        }
+
+        function saveBankSettings(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('settingBankName').value,
+                acc: document.getElementById('settingBankAcc').value,
+                qr: document.getElementById('settingQrUrl').value
+            };
+            localStorage.setItem('tgdd_bank_settings', JSON.stringify(data));
+            alert("ບັນທຶກຂໍ້ມູນທະນາຄານ ແລະ QR Code ສຳເລັດ!");
+        }
+
+        function openImageModal(imgSrc) {
+            document.getElementById('modalSlipImage').src = imgSrc;
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.add('hidden');
+        }
+
+        function checkNewOrdersBadge() {
+            const hasNew = orders.some(o => o.isNew === true);
+            const badge = document.getElementById('newOrderBadge');
+            if (hasNew) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function markOrdersAsRead() {
+            orders.forEach(o => o.isNew = false);
+            localStorage.setItem('tgdd_orders', JSON.stringify(orders));
+            checkNewOrdersBadge();
+            renderAdminOrders();
+        }
+
+        function renderAdminOrders() {
+            const container = document.getElementById('adminOrdersContainer');
+            if (!Array.isArray(orders) || orders.length === 0) {
+                container.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-gray-400 text-xs">ຍັງບໍ່ມີປະຫວັດການສັ່ງຊື້ຈາກລູກຄ້າ.</div>`;
+                return;
+            }
+
+            container.innerHTML = orders.map((o, index) => `
+                <div class="bg-white p-5 rounded-2xl shadow-sm border space-y-3 text-xs">
+                    <div class="flex justify-between items-center border-b pb-2 pr-4">
+                        <span class="font-black text-black text-sm">${o.id || 'N/A'}</span>
+                        <span class="text-gray-400">${o.date || ''}</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-gray-50 p-3 rounded-xl relative">
+                        ${o.isNew ? '<span class="absolute top-2 right-2 bg-red-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full animate-pulse shadow-md z-20">✨ ມາໃໝ່ (New)</span>' : ''}
+                        
+                        <p class="font-bold text-gray-950 sm:col-span-2 text-sm border-b pb-1 mb-1">ຂໍ້ມູນລູກຄ້າ:</p>
+                        <p><strong>ຊື່ລູກຄ້າ / ຜູ້ຮັບ:</strong> ${o.recipient || 'N/A'}</p>
+                        <p><strong>ເບີໂທລະສັບ:</strong> ${o.phone || 'N/A'}</p>
+                        <p class="sm:col-span-2"><strong>ທີ່ຢູ່ຈັດສົ່ງ:</strong> ${o.address || 'N/A'}</p>
+                        <p><strong>ຮູບແບບການຊຳລະ:</strong> ${o.paymentMethod === 'BANK' ? 'ໂອນຜ່ານ QR Code' : 'ເກັບເງິນປາຍທາງ (COD)'}</p>
+                        <p><strong>ສະຖານະການຊຳລະ:</strong> <span class="${o.isPaid ? 'text-green-600 font-bold' : 'text-orange-500 font-bold'}">${o.isPaid ? 'ຊຳລະແລ້ວ (QR)' : 'ລໍຖ້າຊຳລະ (COD)'}</span></p>
+                        
+                        ${o.slipImage ? `
+                            <div class="sm:col-span-2 mt-2 border-t pt-2">
+                                <p class="font-bold text-gray-700 mb-1">ຫຼັກຖານການໂອນເງິນ (Slip ຈາກລູກຄ້າ - ຄລິກເພື່ອເບິ່ງຮູບໃຫຍ່):</p>
+                                <img src="${o.slipImage}" alt="Transfer Slip" onclick="openImageModal('${o.slipImage}')" class="w-32 h-32 object-cover border rounded-xl hover:opacity-90 shadow cursor-pointer bg-white p-1 transition transform hover:scale-105">
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div>
+                        <p class="font-bold text-gray-700 mb-1">ລາຍລະອຽດສິນຄ້າທີ່ສັ່ງຊື້:</p>
+                        <div class="space-y-1 bg-gray-50 p-3 rounded-xl">
+                            ${Array.isArray(o.items) ? o.items.map(i => `
+                                <div class="flex justify-between items-center text-gray-700 border-b border-gray-200 pb-1 last:border-none">
+                                    <div class="flex items-center gap-2">
+                                        <img src="${i.image || ''}" class="w-8 h-8 object-contain bg-white border rounded p-0.5">
+                                        <span>${i.name || 'ສິນຄ້າ'} (x${i.quantity || 1})</span>
+                                    </div>
+                                    <span class="font-bold text-red-600">${formatPrice((i.price || 0) * (i.quantity || 1))} ₭</span>
+                                </div>
+                            `).join('') : ''}
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-2 flex justify-between items-center font-extrabold text-sm">
+                        <span class="text-gray-700">ຍອດລວມທັງໝົດ:</span>
+                        <span class="text-red-600 text-base">${formatPrice(o.total)} ₭</span>
+                    </div>
+
+                    <div class="flex justify-end pt-2 border-t">
+                        <button onclick="deleteOrder(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 font-bold px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash"></i> ລຶບອິນນີ້
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteOrder(index) {
+            if (confirm("ທ່ານແນ່ໃຈບໍວ່າຕ້ອງການລຶບປະຫວັດການສັ່ງຊື້ບິນນີ້?")) {
+                orders.splice(index, 1);
+                localStorage.setItem('tgdd_orders', JSON.stringify(orders));
+                renderAdminOrders();
+                checkNewOrdersBadge();
+            }
+        }
+
+        function clearAllOrders() {
+            if (confirm("ທ່ານແນ່ໃຈບໍວ່າຕ້ອງການລຶບປະຫວັດການສັ່ງຊື້ທັງໝົດ?")) {
+                orders = [];
+                localStorage.setItem('tgdd_orders', JSON.stringify(orders));
+                renderAdminOrders();
+                checkNewOrdersBadge();
+            }
+        }
+    </script>
+</body>
+</html>
